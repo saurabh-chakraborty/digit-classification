@@ -1,3 +1,5 @@
+Branch: features/parts_of_code
+
 MLOps class 3: Digit classification problem
 
 How to setup:
