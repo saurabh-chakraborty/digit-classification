@@ -1,7 +1,7 @@
 
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets
-from utils import preprocess_data, train_model, split_train_dev_test, predict_and_eval, report_CM
+from utils import preprocess_data, split_train_dev_test, train_model, predict_and_eval, report_CM
 
 ###############################################################################
 
@@ -21,16 +21,8 @@ size_test = 0.1
 x = data
 y = digits.target
 
-# # Generate t\Test split.
-# x_remaining, x_test, y_remaining, y_test = split_data(x, y, test_size=ratio_test)
-
-# # Define Val ratio
-# ratio_remaining = 1 - ratio_test
-# ratio_val_adjusted = ratio_val / ratio_remaining
-
 # Generate Train, Dev and Test splits.
 x_train, x_dev, x_test, y_train, y_dev, y_test = split_train_dev_test(x, y, size_test, size_dev)
-
 
 # Step 3: Data preprocessing
 x_train = preprocess_data(x_train)
