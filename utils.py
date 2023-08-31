@@ -13,12 +13,6 @@ def preprocess_data(data):
     data = data.reshape((n_samples, -1))
     return data
 
-# Split data into train and test subsets
-def split_data(x, y, test_size, random_state=1):
-    X_train, X_test, y_train, y_test = train_test_split(
-    x, y, test_size=test_size, random_state=random_state)
-    return X_train, X_test, y_train, y_test
-
 # Split data into train, dev and test subsets
 def split_train_dev_test(X, y, test_size, dev_size):
 
