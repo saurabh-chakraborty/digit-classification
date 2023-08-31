@@ -19,6 +19,24 @@ def split_data(x, y, test_size, random_state=1):
     x, y, test_size=test_size, random_state=random_state)
     return X_train, X_test, y_train, y_test
 
+# Split data into train, dev and test subsets
+def split_train_dev_test(X, y, test_size, dev_size):
+
+    # Generate Test splits
+    x_remaining, x_test, y_remaining, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=1)
+
+    # # Calculate Dev size
+    # size_remaining = 1 - test_size
+    # dev_size_adjusted = dev_size / size_remaining
+
+    # Generate Train and Dev splits
+    x_train, x_dev, y_train, y_dev = train_test_split(
+        x_remaining, y_remaining, test_size=dev_size, random_state=1)
+    
+    return x_train, x_dev, x_test, y_train, y_dev, y_test
+
+
 # Train a model of choice, pass the model parameters
 def train_model(x, y, model_params, model_type="svm"):
     if (model_type=="svm"):
