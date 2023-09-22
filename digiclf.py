@@ -1,7 +1,7 @@
 
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets
-from utils import preprocess_data, split_train_dev_test, get_accuracy, tune_hparams
+from utils import preprocess_data, split_train_dev_test, get_accuracy, tune_hparams, get_hparam_combinations
 
 ###############################################################################
 # Define hyperparameter ranges
@@ -11,9 +11,7 @@ C_ranges = [0.1, 1, 2, 5, 10]
 # Create a list of dictionaries for all hparam combinations
 param_combinations = []
 
-for gamma in gamma_ranges:
-    for C in C_ranges:
-        param_combinations.append({"gamma": gamma, "C": C})
+param_combinations = get_hparam_combinations(gamma_ranges, C_ranges)
 
 test_size = [0.1, 0.2, 0.3]
 dev_size = [0.1, 0.2, 0.3]
@@ -50,6 +48,7 @@ for size_test in test_size:
         print ("Optimal C value: ", optimal_C)
         print ("Best Model: ", best_model)
         print ("Best Accuracy: ", best_acc_so_far)
+
 
 
 
