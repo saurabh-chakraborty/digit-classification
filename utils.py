@@ -96,11 +96,9 @@ def get_accuracy(model, x, y):
 # Hyper-parameter Tuning & Selection of best Hparams
 def tune_hparams(X_train, Y_train, x_dev, y_dev, param_combinations):
     best_acc_so_far = -1
-    # for cur_gamma in gamma_ranges:
-    #     for cur_C in C_ranges:
+
     for param_combination in param_combinations:
             # Train model with cur_gamma & cur_C
-            # cur_model = train_model(X_train, Y_train, {'gamma': cur_gamma, 'C': cur_C}, model_type="svm")
             cur_model = train_model(X_train, Y_train, param_combination, model_type="svm")
             # Get accuracy metric on Dev set
             cur_accuracy = get_accuracy(cur_model, x_dev, y_dev)
@@ -113,3 +111,12 @@ def tune_hparams(X_train, Y_train, x_dev, y_dev, param_combinations):
     
     return optimal_gamma, optimal_C, best_model, best_acc_so_far
 
+def get_hparam_combinations(gamma_ranges, C_ranges):
+    # Create a list of dictionaries for all hparam combinations
+    param_combinations = []
+
+    for gamma in gamma_ranges:
+        for C in C_ranges:
+            param_combinations.append({"gamma": gamma, "C": C})
+    
+    return param_combinations
