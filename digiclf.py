@@ -2,7 +2,7 @@
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets
 from utils import preprocess_data, split_train_dev_test, get_accuracy, tune_hparams, get_hparam_combinations
-
+from PIL import Image
 ###############################################################################
 # Define hyperparameter ranges
 gamma_ranges = [0.0001, 0.001, 0.01, 1, 10]
@@ -56,7 +56,43 @@ for image in data:
     print("Image Height, Width", height, width)
 
 
+# Q3 solution
 
+image_sizes = [4, 6, 8]
+
+for size in image_sizes:
+    resized_images = []
+
+    
+
+    for image in data:
+        # Resize image
+        resized_image = image.resize(size,size)
+        resized_images.append(resized_image)
+
+    r_X = resized_images
+
+    # Split the dataset into training, dev, and test sets
+    X_train, X_test, y_train, y_test = split_train_dev_test(
+        r_X, y, test_size=0.2, random_state=42)
+    
+    X_train, X_dev, y_train, y_dev = split_train_dev_test(
+        X_train, y_train, test_size=0.1, random_state=42)
+ 
+    # Evaluate the model's performance on the dev and test sets
+    r_train_acc = get_accuracy(y_train, best_model.predict(X_train))
+    r_dev_acc = get_accuracy(y_dev, best_model.predict(X_dev))
+    r_test_acc = get_accuracy(y_test, best_model.predict(X_test))
+    
+    # Print the results
+    print(f"Image size: {size}x{size}")
+    print(f"Train size: {len(X_train)/len(data):.2f}")
+    print(f"Dev size: {len(X_dev)/len(data):.2f}")
+    print(f"Test size: {len(X_test)/len(data):.2f}")
+    print(f"Train accuracy: {r_train_acc:.2f}")
+    print(f"Dev accuracy: {r_dev_acc:.2f}")
+    print(f"Test accuracy: {r_test_acc:.2f}")
+    print()
 
 
 
