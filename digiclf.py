@@ -49,6 +49,13 @@ for size_test in test_size:
         print ("Best Model: ", best_model)
         print ("Best Accuracy: ", best_acc_so_far)
 
+print("\nThe number of total samples in the dataset (train + test + dev) = ", len(x_train) + len(x_test) + len(x_dev))
+
+for image in data:
+    height, width = image.shape
+    print("Image Height, Width", height, width)
+
+
 
 
 
