@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 # Import datasets, classifiers and performance metrics
 from sklearn import metrics, svm
 from sklearn.model_selection import train_test_split
+from sklearn import datasets
 
 
 # Flatten the images
@@ -20,13 +21,13 @@ def split_train_dev_test(X, y, test_size, dev_size):
     x_remaining, x_test, y_remaining, y_test = train_test_split(
         X, y, test_size=test_size, random_state=1)
 
-    # # Calculate Dev size
-    # size_remaining = 1 - test_size
-    # dev_size_adjusted = dev_size / size_remaining
+    # Calculate Dev size
+    size_remaining = 1 - test_size
+    dev_size_adjusted = dev_size / size_remaining
 
     # Generate Train and Dev splits
     x_train, x_dev, y_train, y_dev = train_test_split(
-        x_remaining, y_remaining, test_size=dev_size, random_state=1)
+        x_remaining, y_remaining, test_size=dev_size_adjusted, random_state=1)
     
     return x_train, x_dev, x_test, y_train, y_dev, y_test
 
@@ -120,3 +121,15 @@ def get_hparam_combinations(gamma_ranges, C_ranges):
             param_combinations.append({"gamma": gamma, "C": C})
     
     return param_combinations
+
+def load_data():
+
+    # Data loading
+    digits = datasets.load_digits()
+    data = digits.images
+
+    # Define x & y dataframes
+    X = data
+    y = digits.target
+
+    return X, y 
