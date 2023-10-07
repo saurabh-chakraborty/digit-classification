@@ -31,25 +31,24 @@ y = digits.target
 for size_test in test_size:
     for size_dev in dev_size:
 
+        size_train = 1-(size_test+size_dev)
         # Generate Train, Dev and Test splits.
         x_train, x_dev, x_test, y_train, y_dev, y_test = split_train_dev_test(x, y, size_test, size_dev)
 
-        # Data preprocessing
-        x_train = preprocess_data(x_train)
-        x_dev = preprocess_data(x_dev)
-        x_test = preprocess_data(x_test)
+        # Set the required classifier to be used
+        clf = SVC
+        optimal_gamma, optimal_C, best_model, best_acc_so_far, model_path = tune_hparams(x_train, y_train, x_dev, y_dev, param_combinations, clf, size_train, size_dev, size_test)
 
-        optimal_gamma, optimal_C, best_model, best_acc_so_far = tune_hparams(x_train, y_train, x_dev, y_dev, param_combinations)
-        
         train_acc = get_accuracy(best_model, x_train, y_train)
         dev_acc = get_accuracy(best_model, x_dev, y_dev)
         test_acc = get_accuracy(best_model, x_test, y_test)
 
-        print (f"\n\ntest_size={size_test} dev_size={size_dev} train_size={1-(size_test+size_dev)} train_acc={train_acc} dev_acc={dev_acc} test_acc={test_acc}")
+        print (f"\n\ntest_size={size_test} dev_size={size_dev} train_size={size_train} train_acc={train_acc} dev_acc={dev_acc} test_acc={test_acc}")
         
         print ("\nBest Hparam combinations are:")
         print ("Optimal Gamma value: ", optimal_gamma)
         print ("Optimal C value: ", optimal_C)
         print ("Best Model: ", best_model)
         print ("Best Accuracy: ", best_acc_so_far)
+        print ("Model Path: ", model_path)
 
