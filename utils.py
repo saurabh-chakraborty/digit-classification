@@ -3,11 +3,12 @@
 import matplotlib.pyplot as plt
 
 # Import datasets, classifiers and performance metrics
-from sklearn import metrics, svm
+from sklearn import metrics, svm, tree
 from sklearn.model_selection import train_test_split
 from sklearn import datasets
 from sklearn.svm import SVC
 from joblib import dump
+from itertools import product
 
 
 # Flatten the images
@@ -21,7 +22,7 @@ def split_train_dev_test(X, y, test_size, dev_size):
 
     # Generate Test splits
     x_remaining, x_test, y_remaining, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=1)
+        X, y, test_size=test_size, shuffle = True)
 
     # Calculate Dev size
     size_remaining = 1 - test_size
@@ -29,7 +30,7 @@ def split_train_dev_test(X, y, test_size, dev_size):
 
     # Generate Train and Dev splits
     x_train, x_dev, y_train, y_dev = train_test_split(
-        x_remaining, y_remaining, test_size=dev_size_adjusted, random_state=1)
+        x_remaining, y_remaining, test_size=dev_size_adjusted, shuffle = True)
     
     # Data preprocessing
     x_train = preprocess_data(x_train)
@@ -42,11 +43,19 @@ def split_train_dev_test(X, y, test_size, dev_size):
 # Train a model of choice, pass the model parameters
 def train_model(X, y, model_params, clf_type):
 
-    # Create classifier with specified model_params
-    clf = clf_type(**model_params)
+    if clf_type == "svm":
+        # Create SVC classifier with specified model_params
+        clf = svm.SVC
+
+    if clf_type == "tree":
+        # Create DecisionTree classifier with specified model_params
+        clf = tree.DecisionTreeClassifier
+
+
+    model = clf(**model_params)
     # Training the model
-    clf.fit(X, y)
-    return clf
+    model.fit(X, y)
+    return model
 
 
 # Predict & Eval
@@ -61,8 +70,6 @@ def predict_and_eval(model, x, y):
         image = image.reshape(8, 8)
         ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
         ax.set_title(f"Prediction: {prediction}")
-
-    # :func:`~sklearn.metrics.classification_report` builds a text report showing the main classification metrics.
 
     print(
         f"Classification report for classifier {model}:\n"
@@ -101,46 +108,41 @@ def get_accuracy(model, x, y):
     return round(accuracy, 3)
 
 # Hyper-parameter Tuning & Selection of best Hparams
-def tune_hparams(X_train, Y_train, X_dev, y_dev, param_combinations, clf, train_size, dev_size, test_size):
+def tune_hparams(X_train, Y_train, X_dev, y_dev, param_combinations, clf_type, train_size, dev_size, test_size):
     best_acc_so_far = -1
 
     for param_combination in param_combinations:
             # Train model with cur_gamma & cur_C
-            cur_model = train_model(X_train, Y_train, param_combination, clf)
+            cur_model = train_model(X_train, Y_train, param_combination, clf_type)
             # Get accuracy metric on Dev set
             cur_accuracy = get_accuracy(cur_model, X_dev, y_dev)
             # Select the best Hparams based on accuracy metric using Dev set
             if cur_accuracy > best_acc_so_far:
                 best_acc_so_far = cur_accuracy
-                optimal_gamma = param_combination['gamma']
-                optimal_C = param_combination['C']
+                best_hparams = param_combination
                 best_model = cur_model
     
-    best_param_config = 'train_' + str(train_size) + '_' + 'dev_' + str(dev_size) + '_' + 'test_' + str(test_size) + '_' + 'gamma_' + str(optimal_gamma) + '_' + 'C_' + str(optimal_C)
-
-    if clf == SVC:
-        model_type = 'svm' 
-
-    best_model_name = model_type + "_" + best_param_config + ".joblib"
-    model_path = './models/' + best_model_name
-
-    # print("Model path", model_path)
+    model_path = './models/' + clf_type + '_' + 'train_' + str(train_size) + '_' + 'dev_' + str(dev_size) + '_' + 'test_' + str(test_size) + '_' +"_".join(["{}:{}".format(x,y) for x,y in best_hparams.items()]) + ".joblib"
     
     # save the best_model
     dump(best_model, model_path)
 
+    return best_hparams, best_acc_so_far, model_path
 
-    return optimal_gamma, optimal_C, best_model, best_acc_so_far, model_path
 
-def get_hparam_combinations(gamma_ranges, C_ranges):
-    # Create a list of dictionaries for all hparam combinations
-    param_combinations = []
+def get_hparam_combinations(dict_of_param_lists):
+    # Generate all combinations of parameter values
+    param_combinations = list(product(*dict_of_param_lists.values()))
 
-    for gamma in gamma_ranges:
-        for C in C_ranges:
-            param_combinations.append({"gamma": gamma, "C": C})
-    
-    return param_combinations
+    # Create dictionaries for each combination
+    hyperparameter_combinations = []
+    for combination in param_combinations:
+        hyperparameters = {}
+        for param_name, param_value in zip(dict_of_param_lists.keys(), combination):
+            hyperparameters[param_name] = param_value
+        hyperparameter_combinations.append(hyperparameters)
+
+    return hyperparameter_combinations
 
 def load_data():
 
