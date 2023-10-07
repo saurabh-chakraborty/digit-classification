@@ -1,11 +1,11 @@
-from utils import get_hparam_combinations, load_data, split_train_dev_test
+from utils import get_hparam_combinations, load_data, split_train_dev_test, tune_hparams, preprocess_data
+import sys, os
+from sklearn.svm import SVC
+from joblib import load
 
 def test_hparam_combinations():
     # test case to check whether all possible hparam combos are generated
-    gamma_list = []
     gamma_list = [0.001, 0.01, 0.1, 1]
-
-    C_list = []
     C_list = [1, 10, 100, 1000]
 
     h_params_combinations = get_hparam_combinations(gamma_list, C_list)
@@ -15,10 +15,7 @@ def test_hparam_combinations():
 
 def test_specific_combinations():
 # test case to check whether all possible hparam combos are generated
-    gamma_list = []
     gamma_list = [0.001, 0.01, 0.1, 1]
-
-    C_list = []
     C_list = [1, 10, 100, 1000]
 
     h_params_combinations = get_hparam_combinations(gamma_list, C_list)
@@ -42,6 +39,30 @@ def test_data_splitting():
     assert (len(X_train) == 30) 
     assert (len(X_test) == 10)
     assert ((len(X_dev) == 60))
+
+def test_modelSave_modelType():    
+
+    X, y = load_data()
+    X = X[:100,:,:]
+    y = y[:100]
+    
+    gamma_list = [0.001, 0.01]
+    C_list = [1, 2]
+
+    h_params_combinations = get_hparam_combinations(gamma_list, C_list)
+
+    test_size = 0.1
+    dev_size = 0.6
+    train_size = 1-(test_size+dev_size)
+    x_train, x_dev, x_test, y_train, y_dev, y_test = split_train_dev_test(X, y, test_size, dev_size)
+
+    clf = SVC
+
+    outputs = tune_hparams(x_train, y_train, x_dev, y_dev, h_params_combinations, clf, train_size, dev_size, test_size)
+    actual_model_path = outputs[-1]
+
+    assert(os.path.exists(actual_model_path)==True)
+    assert type(load(actual_model_path)) == clf
 
 
 

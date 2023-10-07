@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from sklearn import metrics, svm
 from sklearn.model_selection import train_test_split
 from sklearn import datasets
+from sklearn.svm import SVC
+from joblib import dump
 
 
 # Flatten the images
@@ -29,19 +31,23 @@ def split_train_dev_test(X, y, test_size, dev_size):
     x_train, x_dev, y_train, y_dev = train_test_split(
         x_remaining, y_remaining, test_size=dev_size_adjusted, random_state=1)
     
+    # Data preprocessing
+    x_train = preprocess_data(x_train)
+    x_dev = preprocess_data(x_dev)
+    x_test = preprocess_data(x_test)
+    
     return x_train, x_dev, x_test, y_train, y_dev, y_test
 
 
 # Train a model of choice, pass the model parameters
-def train_model(x, y, model_params, model_type="svm"):
-    if (model_type=="svm"):
-        # Create a SVM classifier
-        clf = svm.SVC
-    # Create a model object
-    model = clf(**model_params)
-    # Training model
-    model.fit(x, y)
-    return model
+def train_model(X, y, model_params, clf_type):
+
+    # Create classifier with specified model_params
+    clf = clf_type(**model_params)
+    # Training the model
+    clf.fit(X, y)
+    return clf
+
 
 # Predict & Eval
 def predict_and_eval(model, x, y):
@@ -95,14 +101,14 @@ def get_accuracy(model, x, y):
     return round(accuracy, 3)
 
 # Hyper-parameter Tuning & Selection of best Hparams
-def tune_hparams(X_train, Y_train, x_dev, y_dev, param_combinations):
+def tune_hparams(X_train, Y_train, X_dev, y_dev, param_combinations, clf, train_size, dev_size, test_size):
     best_acc_so_far = -1
 
     for param_combination in param_combinations:
             # Train model with cur_gamma & cur_C
-            cur_model = train_model(X_train, Y_train, param_combination, model_type="svm")
+            cur_model = train_model(X_train, Y_train, param_combination, clf)
             # Get accuracy metric on Dev set
-            cur_accuracy = get_accuracy(cur_model, x_dev, y_dev)
+            cur_accuracy = get_accuracy(cur_model, X_dev, y_dev)
             # Select the best Hparams based on accuracy metric using Dev set
             if cur_accuracy > best_acc_so_far:
                 best_acc_so_far = cur_accuracy
@@ -110,7 +116,21 @@ def tune_hparams(X_train, Y_train, x_dev, y_dev, param_combinations):
                 optimal_C = param_combination['C']
                 best_model = cur_model
     
-    return optimal_gamma, optimal_C, best_model, best_acc_so_far
+    best_param_config = 'train_' + str(train_size) + '_' + 'dev_' + str(dev_size) + '_' + 'test_' + str(test_size) + '_' + 'gamma_' + str(optimal_gamma) + '_' + 'C_' + str(optimal_C)
+
+    if clf == SVC:
+        model_type = 'svm' 
+
+    best_model_name = model_type + "_" + best_param_config + ".joblib"
+    model_path = './models/' + best_model_name
+
+    # print("Model path", model_path)
+    
+    # save the best_model
+    dump(best_model, model_path)
+
+
+    return optimal_gamma, optimal_C, best_model, best_acc_so_far, model_path
 
 def get_hparam_combinations(gamma_ranges, C_ranges):
     # Create a list of dictionaries for all hparam combinations
@@ -133,3 +153,5 @@ def load_data():
     y = digits.target
 
     return X, y 
+
+
