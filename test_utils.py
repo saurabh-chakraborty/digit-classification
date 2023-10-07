@@ -1,13 +1,5 @@
-# def test_data_splitting():
-#     X, y = read_digits()
-#     X = X[:100,:,:]
-#     y = y[:100]
+from utils import get_hparam_combinations, load_data, split_train_dev_test
 
-#     test_size = .1
-#     dev_size = .6
-#     train_size = 1 - test_size - dev_size
-
-from utils import get_hparam_combinations
 def test_hparam_combinations():
     # test case to check whether all possible hparam combos are generated
     gamma_list = []
@@ -37,7 +29,19 @@ def test_specific_combinations():
     combo_2 = {'C': 100, 'gamma': 0.001}
     assert combo_1 in h_params_combinations and combo_2 in h_params_combinations
 
+def test_data_splitting():
+    X, y = load_data()
+    X = X[:100,:,:]
+    y = y[:100]
 
+    test_size = .1
+    dev_size = .6
+    
+    X_train, X_dev, X_test, y_train, y_dev, y_test = split_train_dev_test(X, y, test_size, dev_size)
+
+    assert (len(X_train) == 30) 
+    assert (len(X_test) == 10)
+    assert ((len(X_dev) == 60))
 
 
 
