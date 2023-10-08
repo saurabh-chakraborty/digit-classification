@@ -9,6 +9,9 @@ from sklearn import datasets
 from sklearn.svm import SVC
 from joblib import dump
 from itertools import product
+import argparse
+import json
+import subprocess
 
 
 # Flatten the images
@@ -129,7 +132,7 @@ def tune_hparams(X_train, Y_train, X_dev, y_dev, param_combinations, clf_type, t
 
     return best_hparams, best_acc_so_far, model_path
 
-
+# Get Hparam combinations
 def get_hparam_combinations(dict_of_param_lists):
     # Generate all combinations of parameter values
     param_combinations = list(product(*dict_of_param_lists.values()))
@@ -144,6 +147,7 @@ def get_hparam_combinations(dict_of_param_lists):
 
     return hyperparameter_combinations
 
+# Load initial data
 def load_data():
 
     # Data loading
@@ -156,4 +160,23 @@ def load_data():
 
     return X, y 
 
+# Load data from json file
+def load_hparams_from_json(json_file_path):
+    with open(json_file_path, 'r') as json_file:
+        hyperparameters_data = json.load(json_file)
+    return hyperparameters_data
 
+# Delete unwanted files using shell command
+def delete_files_shell(folder_extn_dict):
+
+    for item in folder_extn_dict:
+        extn = item.get('extn', '*.*')
+        folder_path = item.get('path', './')
+
+        # Construct the rm command with the extension and folder path
+        rm_command = f'rm {folder_path}{extn}'
+
+        # Run the command using subprocess
+        subprocess.run(rm_command, shell=True)
+
+        print(f"Successfully removed {extn} files")
