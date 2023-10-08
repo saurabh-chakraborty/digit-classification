@@ -1,7 +1,7 @@
 
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets
-from utils import preprocess_data, split_train_dev_test, get_accuracy, tune_hparams, get_hparam_combinations, train_model
+from utils import preprocess_data, split_train_dev_test, get_accuracy, tune_hparams, get_hparam_combinations, train_model, load_hparams_from_json, delete_files_shell
 from PIL import Image
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -9,31 +9,37 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report
 from joblib import load
 import pandas as pd
+import argparse
+import json
 ###############################################################################
+
+# Removing old model files
+extn_paths = [
+    {'extn': '*.joblib', 'path': './models/'},
+]
+delete_files_shell(extn_paths)
 
 # Holds Hparam combinations for all Classifiers 
 clf_param_dict = {}
 
-# SVM
-# Define SVM hyperparameter ranges
-gamma_ranges = [0.0001, 0.001, 0.01, 1, 10]
-C_ranges = [0.1, 1, 2, 5, 10]
-svm_hparams = {}
-svm_hparams['gamma'] = gamma_ranges
-svm_hparams['C'] = C_ranges
+parser = argparse.ArgumentParser(description='Process hyperparameters from JSON file.')
+parser.add_argument('json_file', type=str, help='Path to the JSON file containing hyperparameters')
+
+args = parser.parse_args()
+json_file_path = args.json_file
+
+# Load hyperparameters from JSON
+hyperparameters_data = load_hparams_from_json(json_file_path)
+
+# Extract hyperparameter ranges
+svm_hparams = hyperparameters_data['svm']
+tree_hparams = hyperparameters_data['tree']
 
 # Create a list of dictionaries for all hparam combinations
 svm_param_combinations = get_hparam_combinations(svm_hparams)
-clf_param_dict['svm'] = svm_param_combinations
-
-# Decision Tree
-# Define Tree hyperparameter ranges
-max_depth_ranges = [5, 10, 15, 20, 50, 100]
-tree_hparams = {}
-tree_hparams['max_depth'] = max_depth_ranges
-
-# Create a list of dictionaries for all hparam combinations
 tree_param_combinations = get_hparam_combinations(tree_hparams)
+
+clf_param_dict['svm'] = svm_param_combinations
 clf_param_dict['tree'] = tree_param_combinations
 
 # No of Runs
