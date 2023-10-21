@@ -147,6 +147,7 @@ confusion_matrix_subset = [[true_positive, false_negative],
 
 print("\nConfusion Matrix (Samples Correct in Production but Not in Candidate):")
 print(confusion_matrix_subset)
+print()
 
 
 
