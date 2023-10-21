@@ -6,11 +6,13 @@ from PIL import Image
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
 from joblib import load
 import pandas as pd
 import argparse
 import json
+from sklearn.tree import DecisionTreeClassifier
+
 ###############################################################################
 
 # Removing old model files
@@ -98,12 +100,6 @@ print(results_df.groupby('model_type').describe().T)
 
 # Quiz 2 ********************************************************
 
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
-
 # Load the MNIST dataset
 digits = datasets.load_digits()
 X = digits.data
@@ -127,9 +123,6 @@ candidate_accuracy = accuracy_score(y_test, candidate_predictions)
 # Confusion matrix between production and candidate predictions
 confusion_matrix_all = confusion_matrix(production_predictions, candidate_predictions)
 
-# Confusion matrix for samples predicted correctly in production but not in candidate
-confusion_matrix_subset = confusion_matrix(y_test, (production_predictions == y_test) & (candidate_predictions != y_test))
-
 # Calculate macro-average F1 score
 f1_macro = f1_score(y_test, candidate_predictions, average='macro')
 
@@ -138,8 +131,24 @@ print("Production Model's Accuracy:", production_accuracy)
 print("Candidate Model's Accuracy:", candidate_accuracy)
 print("\nConfusion Matrix (Production vs Candidate):")
 print(confusion_matrix_all)
+print("\nMacro-average F1 Score:", f1_macro)
+
+# Find indices where production model's predictions are correct but candidate model's predictions are wrong
+correct_in_production_not_in_candidate = ((production_predictions == y_test) & (candidate_predictions != y_test))
+
+# Create a 2x2 confusion matrix
+true_positive = sum(correct_in_production_not_in_candidate & (y_test == production_predictions))
+false_negative = sum(~correct_in_production_not_in_candidate & (y_test == production_predictions))
+false_positive = sum(correct_in_production_not_in_candidate & (y_test != production_predictions))
+true_negative = sum(~correct_in_production_not_in_candidate & (y_test != production_predictions))
+
+confusion_matrix_subset = [[true_positive, false_negative],
+                           [false_positive, true_negative]]
+
 print("\nConfusion Matrix (Samples Correct in Production but Not in Candidate):")
 print(confusion_matrix_subset)
-print("Macro-average F1 Score:", f1_macro)
+print()
+
+
 
 
