@@ -96,3 +96,50 @@ results_df = pd.DataFrame(results_dict_list)
 
 print(results_df.groupby('model_type').describe().T)
 
+# Quiz 2 ********************************************************
+
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
+
+# Load the MNIST dataset
+digits = datasets.load_digits()
+X = digits.data
+y = digits.target
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train SVM
+production_model = SVC(kernel='linear')
+production_model.fit(X_train, y_train)
+production_predictions = production_model.predict(X_test)
+production_accuracy = accuracy_score(y_test, production_predictions)
+
+# Train Decision Tree
+candidate_model = DecisionTreeClassifier()
+candidate_model.fit(X_train, y_train)
+candidate_predictions = candidate_model.predict(X_test)
+candidate_accuracy = accuracy_score(y_test, candidate_predictions)
+
+# Confusion matrix between production and candidate predictions
+confusion_matrix_all = confusion_matrix(production_predictions, candidate_predictions)
+
+# Confusion matrix for samples predicted correctly in production but not in candidate
+confusion_matrix_subset = confusion_matrix(y_test, (production_predictions == y_test) & (candidate_predictions != y_test))
+
+# Calculate macro-average F1 score
+f1_macro = f1_score(y_test, candidate_predictions, average='macro')
+
+print("\nQuiz 2 Results\n")
+print("Production Model's Accuracy:", production_accuracy)
+print("Candidate Model's Accuracy:", candidate_accuracy)
+print("\nConfusion Matrix (Production vs Candidate):")
+print(confusion_matrix_all)
+print("\nConfusion Matrix (Samples Correct in Production but Not in Candidate):")
+print(confusion_matrix_subset)
+print("Macro-average F1 Score:", f1_macro)
+
+
