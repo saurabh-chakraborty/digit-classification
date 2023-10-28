@@ -85,70 +85,32 @@ for run_no in range(no_of_runs):
 
                 print (f"\n\nmodel_type={clf} test_size={size_test} dev_size={size_dev} train_size={size_train} train_acc={train_acc} dev_acc={dev_acc} test_acc={test_acc}")
                 
-                print ("\nBest Hparam combinations are:")
-                print ("Best Hparama: ", best_hparams)
-                print ("Best Model: ", best_model)
-                print ("Best Accuracy: ", best_acc_so_far)
+                print ("\nHparam combinations are:")
+                print ("Hparama: ", best_hparams)
+                print ("Model: ", best_model)
+                print ("Accuracy: ", best_acc_so_far)
                 print ("Model Path: ", model_path)
 
-                run_results = {'model_type' : clf, 'run_index' : run_no, 'train_acc' : train_acc, 'dev_acc' : dev_acc, 'test_acc' : test_acc}
+                run_results = {'model_type' : clf, 'run_index' : run_no, 'train_acc' : train_acc, 'dev_acc' : dev_acc, 'test_acc' : test_acc, 'model_path' : model_path}
                 results_dict_list.append(run_results)
 
 results_df = pd.DataFrame(results_dict_list)
 
+best_test_acc = 0
+best_model_path = ''
+for modl in results_dict_list:
+    
+    if modl['test_acc'] > best_test_acc:
+        best_test_acc = modl['test_acc']
+        best_model_path = modl['model_path']
+
+print("\nBest Model Path =", best_model_path)
+print("\nBest Model Test Accuracy =", best_test_acc)
+
+print()
 print(results_df.groupby('model_type').describe().T)
 
-# Quiz 2 ********************************************************
 
-# Load the MNIST dataset
-digits = datasets.load_digits()
-X = digits.data
-y = digits.target
-
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-
-# Train SVM
-production_model = SVC(kernel='linear')
-production_model.fit(X_train, y_train)
-production_predictions = production_model.predict(X_test)
-production_accuracy = accuracy_score(y_test, production_predictions)
-
-# Train Decision Tree
-candidate_model = DecisionTreeClassifier()
-candidate_model.fit(X_train, y_train)
-candidate_predictions = candidate_model.predict(X_test)
-candidate_accuracy = accuracy_score(y_test, candidate_predictions)
-
-# Confusion matrix between production and candidate predictions
-confusion_matrix_all = confusion_matrix(production_predictions, candidate_predictions)
-
-# Calculate macro-average F1 score
-f1_macro = f1_score(y_test, candidate_predictions, average='macro')
-
-print("\nQuiz 2 Results\n")
-print("Production Model's Accuracy:", production_accuracy)
-print("Candidate Model's Accuracy:", candidate_accuracy)
-print("\nConfusion Matrix (Production vs Candidate):")
-print(confusion_matrix_all)
-print("\nMacro-average F1 Score:", f1_macro)
-
-# Find indices where production model's predictions are correct but candidate model's predictions are wrong
-correct_in_production_not_in_candidate = ((production_predictions == y_test) & (candidate_predictions != y_test))
-
-# Create a 2x2 confusion matrix
-true_positive = sum(correct_in_production_not_in_candidate & (y_test == production_predictions))
-false_negative = sum(~correct_in_production_not_in_candidate & (y_test == production_predictions))
-false_positive = sum(correct_in_production_not_in_candidate & (y_test != production_predictions))
-true_negative = sum(~correct_in_production_not_in_candidate & (y_test != production_predictions))
-
-confusion_matrix_subset = [[true_positive, false_negative],
-                           [false_positive, true_negative]]
-
-print("\nConfusion Matrix (Samples Correct in Production but Not in Candidate):")
-print(confusion_matrix_subset)
-print()
 
 
 
