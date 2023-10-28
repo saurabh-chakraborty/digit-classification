@@ -125,7 +125,7 @@ def tune_hparams(X_train, Y_train, X_dev, y_dev, param_combinations, clf_type, t
                 best_hparams = param_combination
                 best_model = cur_model
     
-    model_path = './models/' + clf_type + '_' + 'train_' + str(train_size) + '_' + 'dev_' + str(dev_size) + '_' + 'test_' + str(test_size) + '_' +"_".join(["{}:{}".format(x,y) for x,y in best_hparams.items()]) + ".joblib"
+    model_path = './models/' + clf_type + '_' + 'train_' + str(train_size) + '_' + 'dev_' + str(dev_size) + '_' + 'test_' + str(test_size) + '_' +"_".join(["{}_{}".format(x,y) for x,y in best_hparams.items()]) + ".joblib"
     
     # save the best_model
     dump(best_model, model_path)
