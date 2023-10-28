@@ -1,0 +1,8 @@
+version: '1.0'
+
+services:
+  digiclf:
+    container_name: digiclf
+    image: digiclf
+    build: .
+
