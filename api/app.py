@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, render_template, make_response
 from flask_session import Session
 import numpy as np
+import json
 from joblib import load
 import os
 
@@ -42,3 +43,37 @@ def predict():
     result = prediction[0]
     return "Predicted Digit = " + str(result)
 
+
+def predict_form_input(data):
+   
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    models_dir = os.path.join(current_dir, '..', 'models')
+    model_file_path = os.path.join(models_dir, model_name)
+
+    # Load model
+    model = load(model_file_path)
+
+    input_vector = np.array(data['image']).reshape(1, -1)
+
+    # Make predictions using the loaded model
+    prediction = model.predict(input_vector)
+    result = prediction[0]
+    
+    return str(result)
+
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/predict_input', methods=['GET','POST'])
+def my_form_post():
+    text1 = request.form['text1']
+    data = json.loads(text1)
+    output = predict_form_input(data)
+    result = {
+        "output": output
+    }
+    result = {str(key): value for key, value in result.items()}
+    return jsonify(result=result)
+    
