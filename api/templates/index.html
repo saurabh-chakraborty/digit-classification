@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Predictor</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<script>
+function myFunction() {
+var text1= $('#text1').val();
+
+  $.ajax({
+              url: "/predict_input",
+              type: "POST",
+              data: {text1:text1}
+          }).done(function(response) {
+            var html= "<br><br><br><p> <b> Predicted Digit : <b><p>";
+            response =response.result;
+                 $.each(response,function(key,val){
+                 console.log(val);
+                    html+="<p>"+val+"<p>"
+                });
+                html +="<br>";
+                $(".show-data").append(html);
+            });
+};
+  </script>
+<body>
+    <p>
+        Provide Image<br><br>
+            Image JSON<input type="text" id="text1" name="text1"><br><br>
+            <button id="clicked" onclick="myFunction()">Submit</button>
+        </p>
+    <div class="show-data" >
+    </div>
+</body>
+</html>
