@@ -33,4 +33,4 @@ json_path = './json_files/' + 'config.json'
 with open(json_path, 'w') as json_file:
     json.dump(hyperparameters_data, json_file, indent=4)
 
-print(f'JSON stored at {json_path}')
+# print(f'JSON stored at {json_path}')
