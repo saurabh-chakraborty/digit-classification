@@ -177,6 +177,8 @@ def delete_files_shell(folder_extn_dict):
         rm_command = f'rm {folder_path}{extn}'
 
         # Run the command using subprocess
-        subprocess.run(rm_command, shell=True)
+        # subprocess.run(rm_command, shell=True)
+        subprocess.run(rm_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        print(f"Successfully removed {extn} files")
+
+        # print(f"Successfully removed {extn} files")
