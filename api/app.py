@@ -41,7 +41,9 @@ def predict():
     # Make predictions using the loaded model
     prediction = model.predict(input_vector)
     result = prediction[0]
-    return "Predicted Digit = " + str(result)
+
+    # Use to print on console
+    return "\nPredicted Digit = " + str(result)
 
 
 def predict_form_input(data):
@@ -81,6 +83,18 @@ def my_form_post():
         res = 'False'
     result = {
         "output": res
+    }
+    result = {str(key): value for key, value in result.items()}
+    return jsonify(result=result)
+
+@app.route('/predict_single_input', methods=['GET','POST'])
+def form_post():
+    text1 = request.form['text1']
+    data1 = json.loads(text1)
+    output1 = predict_form_input(data1)
+
+    result = {
+        "output": output1
     }
     result = {str(key): value for key, value in result.items()}
     return jsonify(result=result)

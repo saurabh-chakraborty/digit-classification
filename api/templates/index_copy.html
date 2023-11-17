@@ -8,14 +8,16 @@
 <script>
 function myFunction() {
 var text1= $('#text1').val();
+var text2= $('#text2').val();
 console.log(text1);
+console.log(text2);
 
 
 
   $.ajax({
-              url: "/predict_single_input",
+              url: "/predict_input",
               type: "POST",
-              data: {text1:text1}
+              data: {text1:text1, text2:text2}
           }).done(function(response) {
             var html= "<br><br><br><p> <b> Predicted Digit : <b><p>";
             response =response.result;
@@ -31,8 +33,9 @@ console.log(text1);
 
 <body>
     <p>
-        Image Predictor<br><br>
-            Provide image JSON <input type="text" id="text1" name="text1"><br><br>
+        Provide Image<br><br>
+            Image JSON 1<input type="text" id="text1" name="text1"><br><br>
+            Image JSON 2<input type="text" id="text2" name="text2"><br><br>
             <button id="clicked" onclick="myFunction()">Submit</button>
         </p>
     <div class="show-data" >
