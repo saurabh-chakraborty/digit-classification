@@ -69,10 +69,18 @@ def home():
 @app.route('/predict_input', methods=['GET','POST'])
 def my_form_post():
     text1 = request.form['text1']
-    data = json.loads(text1)
-    output = predict_form_input(data)
+    data1 = json.loads(text1)
+    output1 = predict_form_input(data1)
+
+    text2 = request.form['text2']
+    data2 = json.loads(text2)
+    output2 = predict_form_input(data2)
+    if(output1 == output2):
+        res = 'True'
+    else:
+        res = 'False'
     result = {
-        "output": output
+        "output": res
     }
     result = {str(key): value for key, value in result.items()}
     return jsonify(result=result)
