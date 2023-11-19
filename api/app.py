@@ -2,10 +2,12 @@ from flask import Flask, request, jsonify, session, render_template, make_respon
 from flask_session import Session
 import numpy as np
 import json
-from joblib import load
+from joblib import load, dump
 import os
+import base64
+from sklearn.ensemble import RandomForestClassifier 
 
-model_name = 'svm_train_0.6_dev_0.2_test_0.2_gamma_0.001_C_1.joblib'
+model_name = 'tree_train_0.6_dev_0.2_test_0.2_max_depth_15_max_leaf_nodes_100.joblib'
 predicted_result = 'None'
 
 app = Flask(__name__)
@@ -24,26 +26,26 @@ def sum_num(x,y):
     sum = int(x) + int(y)
     return str(sum)
 
-@app.route("/predict", methods = ['POST'])
-def predict():
+# @app.route("/predict", methods = ['POST'])
+# def predict():
     
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    models_dir = os.path.join(current_dir, '..', 'models')
-    model_file_path = os.path.join(models_dir, model_name)
+#     current_dir = os.path.dirname(os.path.abspath(__file__))
+#     models_dir = os.path.join(current_dir, '..', 'models')
+#     model_file_path = os.path.join(models_dir, model_name)
 
-    # Load model
-    model = load(model_file_path)
+#     # Load model
+#     model = load(model_file_path)
 
-    # Get the input data as a JSON object
-    data = request.get_json(force=True)
-    input_vector = np.array(data['image']).reshape(1, -1)
+#     # Get the input data as a JSON object
+#     data = request.get_json(force=True)
+#     input_vector = np.array(data['image']).reshape(1, -1)
     
-    # Make predictions using the loaded model
-    prediction = model.predict(input_vector)
-    result = prediction[0]
+#     # Make predictions using the loaded model
+#     prediction = model.predict(input_vector)
+#     result = prediction[0]
 
-    # Use to print on console
-    return "\nPredicted Digit = " + str(result)
+#     # Use to print on console
+#     return "\nPredicted Digit = " + str(result)
 
 
 def predict_form_input(data):
@@ -98,4 +100,41 @@ def form_post():
     }
     result = {str(key): value for key, value in result.items()}
     return jsonify(result=result)
-    
+
+
+# Quiz 4 related code
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+models_dir = os.path.join(current_dir, '..', 'models')
+model_file_path = os.path.join(models_dir, model_name)
+
+# Load model
+model = load(model_file_path)
+
+
+@app.route("/predict", methods=['POST'])
+def predict():
+    try:
+        
+        # Get the input data as a JSON object
+        data = request.get_json(force=True)
+        
+        # Decode the base64-encoded image data
+        image_data = base64.b64decode(data['image'])
+
+        # Convert bytes to numpy array
+        input_vector = np.frombuffer(image_data, dtype=np.uint8)
+
+        # Reshape the data to match the model's input shape
+        input_vector = input_vector.reshape(1, -1)
+
+        # Make predictions using the loaded model
+        prediction = model.predict(input_vector)
+        result = prediction[0]
+        return jsonify({'predicted_digit': int(result), 'status': 'success'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e), 'status': 'failure'}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True)
