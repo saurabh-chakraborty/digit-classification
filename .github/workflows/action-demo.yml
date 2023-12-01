@@ -23,12 +23,12 @@ jobs:
       - run: echo "This print is for github actions check"
       - name: Run Pytest
         run:  pytest
-      # - name: Run experiment
-      #   run:  python create_json.py ; python digiclf.py ./json_files/config.json
-      # - run: echo "Following steps deploys Docker and Runs my image"
-      # - name: Docker Setup
-      #   uses: docker/setup-buildx-action@v1
-      # - name: Run Docker deployment script
-      #   run:  chmod +x ./docker_run.sh && ./docker_run.sh
+      - name: Run experiment
+        run:  python create_json.py ; python digiclf.py ./json_files/config.json
+      - run: echo "Following steps deploys Docker and Runs my image"
+      - name: Docker Setup
+        uses: docker/setup-buildx-action@v1
+      - name: Run Docker deployment script
+        run:  chmod +x ./docker_run.sh && ./docker_run.sh
         
       
