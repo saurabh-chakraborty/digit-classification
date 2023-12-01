@@ -80,77 +80,77 @@ import base64
 # Quiz 4 code
 
 # test_app.py
-import pytest
-import numpy as np
-from sklearn.datasets import fetch_openml
-from api.app import app
+# import pytest
+# import numpy as np
+# from sklearn.datasets import fetch_openml
+# from api.app import app
 
-@pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
+# @pytest.fixture
+# def client():
+#     app.config['TESTING'] = True
+#     with app.test_client() as client:
+#         yield client
 
-def load_mnist_samples():
-    # Load the MNIST dataset using scikit-learn
-    mnist = fetch_openml('mnist_784', version=1)
-    mnist_images = mnist.data.astype('float32') / 255.0
-    mnist_labels = mnist.target.astype('int')
+# def load_mnist_samples():
+#     # Load the MNIST dataset using scikit-learn
+#     mnist = fetch_openml('mnist_784', version=1)
+#     mnist_images = mnist.data.astype('float32') / 255.0
+#     mnist_labels = mnist.target.astype('int')
 
-    # Reshape the data to match the model's input shape
-    mnist_images = mnist_images.values.reshape((-1, 8, 8))
-    # mnist_images = mnist_images.values.reshape((-1, 28, 28, 1))
+#     # Reshape the data to match the model's input shape
+#     mnist_images = mnist_images.values.reshape((-1, 8, 8))
+#     # mnist_images = mnist_images.values.reshape((-1, 28, 28, 1))
 
-    return mnist_images, mnist_labels
+#     return mnist_images, mnist_labels
 
-def flatten_image(image):
-    # Flatten the image to a 1D array
-    return image.flatten()
+# def flatten_image(image):
+#     # Flatten the image to a 1D array
+#     return image.flatten()
 
 
 
-def test_post_predict(client):
-    # Load MNIST samples
-    mnist_images, mnist_labels = load_mnist_samples()
+# def test_post_predict(client):
+#     # Load MNIST samples
+#     mnist_images, mnist_labels = load_mnist_samples()
 
-    # Take the first 10 samples for testing
-    test_samples = mnist_images[:10]
-    expected_labels = mnist_labels[:10]
+#     # Take the first 10 samples for testing
+#     test_samples = mnist_images[:10]
+#     expected_labels = mnist_labels[:10]
 
-    for i in range(10):
-        sample_image = test_samples[i]
-        expected_label = expected_labels[i]
+#     for i in range(10):
+#         sample_image = test_samples[i]
+#         expected_label = expected_labels[i]
 
-        # Prepare the image data for the POST request
-        image_data = base64.b64encode((sample_image * 255).astype(np.uint8).tobytes()).decode('utf-8')
-        data = {'image': image_data}
+#         # Prepare the image data for the POST request
+#         image_data = base64.b64encode((sample_image * 255).astype(np.uint8).tobytes()).decode('utf-8')
+#         data = {'image': image_data}
         
-        response = client.post('/predict', json=data)
+#         response = client.post('/predict', json=data)
         
-        print(f"Digit: {i}, Response Status Code: {response.status_code}, Response JSON: {response.get_json()}")
+#         print(f"Digit: {i}, Response Status Code: {response.status_code}, Response JSON: {response.get_json()}")
 
 
-        assert response.status_code == 200
+#         assert response.status_code == 200
      
-        # Check if the predicted digit matches any of the expected labels
-        predicted_digit = response.get_json()['predicted_digit']
+#         # Check if the predicted digit matches any of the expected labels
+#         predicted_digit = response.get_json()['predicted_digit']
 
-        # Create a list of assertion conditions for each digit
-        conditions = [
-            predicted_digit == 0,
-            predicted_digit == 1,
-            predicted_digit == 2,
-            predicted_digit == 3,
-            predicted_digit == 4,
-            predicted_digit == 5,
-            predicted_digit == 6,
-            predicted_digit == 7,
-            predicted_digit == 8,
-            predicted_digit == 9,
-        ]
+#         # Create a list of assertion conditions for each digit
+#         conditions = [
+#             predicted_digit == 0,
+#             predicted_digit == 1,
+#             predicted_digit == 2,
+#             predicted_digit == 3,
+#             predicted_digit == 4,
+#             predicted_digit == 5,
+#             predicted_digit == 6,
+#             predicted_digit == 7,
+#             predicted_digit == 8,
+#             predicted_digit == 9,
+#         ]
 
-        # Use any() to check if any condition is true
-        assert any(conditions), f"None of the conditions passed for Digit: {i}"
+#         # Use any() to check if any condition is true
+#         assert any(conditions), f"None of the conditions passed for Digit: {i}"
 
 
     
