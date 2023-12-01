@@ -47,7 +47,7 @@ clf_param_dict['tree'] = tree_param_combinations
 # No of Runs
 no_of_runs = 5
 
-# Define Data split
+# Define Data split, canb be a list to iterate
 test_size = [0.2]
 dev_size = [0.2]
 
