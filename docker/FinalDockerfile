@@ -1,0 +1,10 @@
+# Use the Dependency Image as the base image
+FROM dependency_image:v5 AS FinalImage
+
+COPY . .
+
+# Run unit tests using pytest
+CMD ["pytest"]
+
+
+
