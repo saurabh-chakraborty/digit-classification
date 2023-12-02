@@ -35,5 +35,14 @@
             100,
             200
         ]
+    },
+    "lr": {
+        "solver": [
+            "newton-cg",
+            "lbfgs",
+            "liblinear",
+            "sag",
+            "saga"
+        ]
     }
 }

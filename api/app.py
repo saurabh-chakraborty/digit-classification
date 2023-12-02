@@ -6,6 +6,9 @@ from joblib import load, dump
 import os
 import base64
 from sklearn.ensemble import RandomForestClassifier 
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+
 
 model_name = 'tree_train_0.6_dev_0.2_test_0.2_max_depth_15_max_leaf_nodes_100.joblib'
 predicted_result = 'None'
@@ -102,39 +105,82 @@ def form_post():
     return jsonify(result=result)
 
 
-# Quiz 4 related code
+# # Quiz 4 related code
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-models_dir = os.path.join(current_dir, '..', 'models')
-model_file_path = os.path.join(models_dir, model_name)
+# current_dir = os.path.dirname(os.path.abspath(__file__))
+# models_dir = os.path.join(current_dir, '..', 'models')
+# model_file_path = os.path.join(models_dir, model_name)
 
-# Load model
-model = load(model_file_path)
+# # Load model
+# model = load(model_file_path)
 
 
-@app.route("/predict", methods=['POST'])
-def predict():
-    try:
+# @app.route("/predict", methods=['POST'])
+# def predict():
+#     try:
         
-        # Get the input data as a JSON object
-        data = request.get_json(force=True)
+#         # Get the input data as a JSON object
+#         data = request.get_json(force=True)
         
-        # Decode the base64-encoded image data
-        image_data = base64.b64decode(data['image'])
+#         # Decode the base64-encoded image data
+#         image_data = base64.b64decode(data['image'])
 
-        # Convert bytes to numpy array
-        input_vector = np.frombuffer(image_data, dtype=np.uint8)
+#         # Convert bytes to numpy array
+#         input_vector = np.frombuffer(image_data, dtype=np.uint8)
 
-        # Reshape the data to match the model's input shape
-        input_vector = input_vector.reshape(1, -1)
+#         # Reshape the data to match the model's input shape
+#         input_vector = input_vector.reshape(1, -1)
 
-        # Make predictions using the loaded model
-        prediction = model.predict(input_vector)
+#         # Make predictions using the loaded model
+#         prediction = model.predict(input_vector)
+#         result = prediction[0]
+#         return jsonify({'predicted_digit': int(result), 'status': 'success'}), 200
+
+#     except Exception as e:
+#         return jsonify({'error': str(e), 'status': 'failure'}), 500
+
+# if __name__ == "__main__":
+#     app.run(debug=True)
+
+
+def load_models(models_path='./models/'):
+    svm_model_path = os.path.join(models_path, 'm22aie239_svm_0.01_5.joblib')
+    lr_model_path = os.path.join(models_path, 'm22aie239_lr_newton-cg.joblib')
+    dt_model_path = os.path.join(models_path, 'm22aie239_tree_10_200.joblib')
+
+    svm_model = load(svm_model_path)
+    lr_model = load(lr_model_path)
+    dt_model = load(dt_model_path)
+
+    return svm_model, lr_model, dt_model
+
+
+
+
+@app.route("/predict/<string:model_type>", methods=['POST'])
+def predict(model_type):
+
+    svm_model, lr_model, tree_model = load_models()
+
+    # Get the input data as a JSON object
+    data = request.get_json(force=True)
+    input_vector = np.array(data['image']).reshape(1, -1)
+
+    # Make predictions using the loaded model
+    if(model_type == 'svm'):
+        prediction = svm_model.predict(input_vector)
         result = prediction[0]
-        return jsonify({'predicted_digit': int(result), 'status': 'success'}), 200
+    
+    elif(model_type == 'tree'):
+        prediction = tree_model.predict(input_vector)
+        result = prediction[0]
 
-    except Exception as e:
-        return jsonify({'error': str(e), 'status': 'failure'}), 500
+    elif(model_type == 'lr'):
+        prediction = lr_model.predict(input_vector)
+        result = prediction[0]
+
+    # Use to print on console
+    return jsonify({'predicted_digit': int(result)})
 
 if __name__ == "__main__":
     app.run(debug=True)

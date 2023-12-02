@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 # Import datasets, classifiers and performance metrics
 from sklearn import metrics, svm, tree
 from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
 from sklearn import datasets
 from sklearn.svm import SVC
 from joblib import dump
@@ -12,28 +13,40 @@ from itertools import product
 import argparse
 import json
 import subprocess
+from sklearn.metrics import f1_score
+import os
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
+import numpy as np
 
 
 # Flatten the images
 def preprocess_data(data):
     n_samples = len(data)
     data = data.reshape((n_samples, -1))
-    return data
+
+    # Apply unit normalization using StandardScaler
+    scaler = StandardScaler()
+    data_normalized = scaler.fit_transform(data)
+
+    return data_normalized
 
 # Split data into train, dev and test subsets
-def split_train_dev_test(X, y, test_size, dev_size):
+def split_train_dev_test(X, y, test_size, dev_size, seed):
 
     # Generate Test splits
     x_remaining, x_test, y_remaining, y_test = train_test_split(
-        X, y, test_size=test_size, shuffle = True)
-
+        X, y, test_size=test_size, shuffle = True, random_state=seed)
+    
+    
     # Calculate Dev size
     size_remaining = 1 - test_size
     dev_size_adjusted = dev_size / size_remaining
 
     # Generate Train and Dev splits
     x_train, x_dev, y_train, y_dev = train_test_split(
-        x_remaining, y_remaining, test_size=dev_size_adjusted, shuffle = True)
+        x_remaining, y_remaining, test_size=dev_size_adjusted, shuffle = True, random_state=seed)
     
     # Data preprocessing
     x_train = preprocess_data(x_train)
@@ -44,21 +57,31 @@ def split_train_dev_test(X, y, test_size, dev_size):
 
 
 # Train a model of choice, pass the model parameters
-def train_model(X, y, model_params, clf_type):
+def train_model(X, y, model_params, clf_type, random_state_value, num_threads):
 
     if clf_type == "svm":
         # Create SVC classifier with specified model_params
-        clf = svm.SVC
+        # clf = svm.SVC
+        clf = SVC(**model_params)
+        # Training the model
+        clf.fit(X, y)
 
     if clf_type == "tree":
         # Create DecisionTree classifier with specified model_params
-        clf = tree.DecisionTreeClassifier
+        # clf = tree.DecisionTreeClassifier
+        clf = DecisionTreeClassifier(random_state=random_state_value, **model_params)
+        # Training the model
+        clf.fit(X, y)
+    
+    if clf_type == "lr":
+        # Create Logistic Regression classifier with specified model_params
+        clf = LogisticRegression(random_state=random_state_value, **model_params)
+        # Training the model
+        clf.fit(X, y)
 
-
-    model = clf(**model_params)
-    # Training the model
-    model.fit(X, y)
-    return model
+    # model = clf(**model_params)
+    
+    return clf
 
 
 # Predict & Eval
@@ -104,33 +127,47 @@ def report_CM(y, predicted):
         f"{metrics.classification_report(y_true, y_pred)}\n"
     )
 
-# Compute Model Accuracy
+# Compute Model Accuracy & F1 score
 def get_accuracy(model, x, y):
     predicted = model.predict(x)
     accuracy = metrics.accuracy_score(y, predicted)
-    return round(accuracy, 3)
+    # Calculate macro F1 score
+    macro_f1 = f1_score(y, predicted, average='macro')
+
+    # Perform 5-fold cross-validation
+    cv_scores = cross_val_score(model, x, y, cv=5, scoring='accuracy')
+    # Calculate mean and std of the cross-validation scores
+    mean_accuracy = np.mean(cv_scores)
+    std_accuracy = np.std(cv_scores)
+
+    return round(accuracy, 3), round(macro_f1, 3), mean_accuracy, std_accuracy
 
 # Hyper-parameter Tuning & Selection of best Hparams
-def tune_hparams(X_train, Y_train, X_dev, y_dev, param_combinations, clf_type, train_size, dev_size, test_size):
+def tune_hparams(X_train, Y_train, X_dev, y_dev, param_combinations, clf_type, train_size, dev_size, test_size, random_state_value, num_threads):
     best_acc_so_far = -1
+    best_f1_so_far = 0
 
     for param_combination in param_combinations:
             # Train model with cur_gamma & cur_C
-            cur_model = train_model(X_train, Y_train, param_combination, clf_type)
+            cur_model = train_model(X_train, Y_train, param_combination, clf_type, random_state_value, num_threads)
             # Get accuracy metric on Dev set
-            cur_accuracy = get_accuracy(cur_model, X_dev, y_dev)
+            cur_accuracy, cur_f1, mean_accuracy, std_accuracy = get_accuracy(cur_model, X_dev, y_dev)
             # Select the best Hparams based on accuracy metric using Dev set
             if cur_accuracy > best_acc_so_far:
                 best_acc_so_far = cur_accuracy
+                best_f1_so_far = cur_f1
                 best_hparams = param_combination
                 best_model = cur_model
     
-    model_path = './models/' + clf_type + '_' + 'train_' + str(train_size) + '_' + 'dev_' + str(dev_size) + '_' + 'test_' + str(test_size) + '_' +"_".join(["{}_{}".format(x,y) for x,y in best_hparams.items()]) + ".joblib"
-    
+    # model_path = './models/' + 'm22aie239_' + clf_type + '_' + 'train_' + str(train_size) + '_' + 'dev_' + str(dev_size) + '_' + 'test_' + str(test_size) + '_' +"_".join(["{}_{}".format(x,y) for x,y in best_hparams.items()]) + ".joblib"
+    # model_path = './models/' + 'm22aie239_' + clf_type + '_' +"_".join(["{}_{}".format(x,y) for x,y in best_hparams.items()]) + ".joblib"
+    model_path = './models/' + 'm22aie239_' + clf_type + '_' +"_".join(["{}".format(y) for x,y in best_hparams.items()]) + ".joblib"
+
+
     # save the best_model
     dump(best_model, model_path)
 
-    return best_hparams, best_acc_so_far, model_path
+    return best_hparams, best_acc_so_far, model_path, best_f1_so_far
 
 # Get Hparam combinations
 def get_hparam_combinations(dict_of_param_lists):
@@ -182,3 +219,19 @@ def delete_files_shell(folder_extn_dict):
 
 
         # print(f"Successfully removed {extn} files")
+
+# Function to write results into a text file
+def write_results_to_file(clf_name, random_state, accuracy_score_value, f1_score_value, model_path):
+    # Create the results folder if it doesn't exist
+    results_folder = "./results"
+    os.makedirs(results_folder, exist_ok=True)
+
+    # Define the file path with the specified format
+    file_name = f"{clf_name}_{random_state}.txt"
+    file_path = os.path.join(results_folder, file_name)
+
+    # Write the results to the text file
+    with open(file_path, "w") as file:
+        file.write(f"accuracy: {accuracy_score_value}\n")
+        file.write(f"f1: {f1_score_value}\n")
+        file.write(f"model path: {model_path}\n")
